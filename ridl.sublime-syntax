@@ -1,0 +1,63 @@
+%YAML 1.2
+---
+name: RIDL
+file_extensions:
+  - ridl
+  - rdl
+scope: source.ridl
+
+contexts:
+  main:
+    - match: '#'
+      push:
+        - meta_scope: comment.line.ridl
+        - match: '\n'
+          pop: true
+    - match: '='
+      scope: keyword.operator.initialize.ridl
+      push: stringlit
+    - match: \b(enum|message|service)\b
+      scope: keyword.declaration.impl
+      push:
+        - match: '[A-z]*(?=(\n|:))'
+          scope: entity.name.class.ridl
+          pop: true
+    - match: \b(go.tag.(yaml|db|json)|json|go.field.(type|name))\b
+      scope: constant.language.ridl
+    - match: '-'
+      push: param
+    - match: ':'
+      scope: punctuation.separator.ridl
+      push: typeval
+
+  param:
+    - match: '[A-z]*\n'
+      scope: meta.string.ridl
+      pop: true
+    - match: '[A-z]*(?=\()'
+      scope: entity.name.function
+    - match: '(?<=- )[A-z?]*'
+      scope: meta.parameter.ridl
+    - match: '-'
+      scope: string.unquoted.ridl
+    - match: ':'
+      scope: punctuation.separator.ridl
+      push: typeval
+    - match: '\n|\(|,'
+      pop: true
+
+  typeval:
+    - match: \b(uint64|int64|uint32|int32|string|bool|byte|int|timestamp)\b
+      scope: storage.type.ridl
+    - match: '[A-Z][a-z]+'
+      scope: entity.name.class
+    - match: '=>'
+      scope: keyword.operator.logical.ridl
+    - match: '(?=(,|\n))'
+      pop: true
+
+  stringlit:
+    - match: '([A-Z]|[a-z])+'
+      scope: string.quoted.ridl
+    - match: '\s'
+      pop: true
